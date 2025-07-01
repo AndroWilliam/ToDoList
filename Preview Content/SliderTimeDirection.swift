@@ -7,8 +7,16 @@
 
 import Foundation
 
-enum SliderTimeDirection {
-  case future
-  case past
-  case unknown
+enum SliderTimeDirection: Equatable, Hashable {
+    case unknown
+    case past
+    case future
+
+    var dayOffset: Int {
+        switch self {
+        case .past:    return -7
+        case .future:  return +7
+        case .unknown: return  0
+        }
+    }
 }

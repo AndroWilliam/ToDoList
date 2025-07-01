@@ -8,29 +8,30 @@
 import SwiftUI
 
 struct ContentView: View {
-  
-  @EnvironmentObject var weekManager: DateManager
-  @EnvironmentObject var tasksListManager: TasksListManager
-  
-  var body: some View {
-    ZStack {
-      VStack {
-        DateHeaderView()
-        ScrollView(.vertical) {
-          VStack {
-            TaskListView(date: $weekManager.selectedDate, items: $tasksListManager.items)
-          }
-          
+    @EnvironmentObject var dateManager: DateManager
+    @EnvironmentObject var tasksListManager: TasksListManager
+
+    var body: some View {
+        VStack(spacing: 0) {
+            DateHeaderView()
+            
+            ScrollView(.vertical) {
+                TaskListView(
+                    date: $dateManager.selectedDate,
+                    items: $tasksListManager.items
+                )
+                .padding(.horizontal)
+            }
+            .scrollIndicators(.hidden)          // iOS 17+ API
+            .scrollContentBackground(.hidden)   // hide default background if you like
         }
-        .scrollIndicators(.hidden)
-      }
+        .ignoresSafeArea(edges: .bottom)        // optional: extend under tab‐bar/nav‐bar
     }
-  }
 }
 
 #Preview {
-  ContentView()
-    .environmentObject(DateManager())
-    .environmentObject(TasksListManager())
-  
+    ContentView()
+        .environmentObject(DateManager())
+        .environmentObject(TasksListManager())
 }
+

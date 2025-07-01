@@ -8,72 +8,78 @@
 import SwiftUI
 
 struct DateHeaderView: View {
-  
-  @EnvironmentObject var dateManager: DateManager
-  
-  var body: some View {
-    ZStack {
-      VStack {
-        nameHeaderTextView()
-        DateSliderView { week in
-          DateView(week: week)
+    @EnvironmentObject private var dateManager: DateManager
+
+    var body: some View {
+        VStack(spacing: 12) {
+            nameHeaderTextView()
+
+            DateSliderView { week in
+                DateView(week: week)
+            }
+            .frame(height: 60)
+
+            Divider()
+
+            HStack {
+                Spacer()
+                Text(
+                    dateManager.selectedDate,
+                    format: Date.FormatStyle()
+                        .weekday(.abbreviated)
+                        .day(.twoDigits)
+                        .month(.twoDigits)
+                        .year()
+                )
+                .font(.system(size: 10, design: .rounded))
+                .foregroundColor(.gray)
+            }
         }
-        .frame(height: 60, alignment: .top)
-        Divider()
+        .padding(.horizontal)
+        .padding(.vertical, 8)
+    }
+
+    @ViewBuilder
+    private func nameHeaderTextView() -> some View {
         HStack {
-          Spacer()
-          Text(dateManager.selectedDate.toString(format: "EEE, dd.MM.yyyy"))
-            .font(.system(size: 10, design: .rounded))
-            .foregroundColor(Color.gray)
+            // Left: greeting + subtitle
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Hi, Javid")
+                    .font(.title2.weight(.semibold))
+                    .foregroundColor(.primary)
+
+                Text(
+                    dateManager.selectedDate == Calendar.current.startOfDay(for: Date())
+                        ? "What's up for today?"
+                        : "Planning for future?"
+                )
+                .font(.caption)
+                .foregroundColor(.secondary)
+            }
+
+            Spacer()
+
+            // Right: month + Today button
+            VStack(alignment: .trailing, spacing: 4) {
+                Text(
+                    dateManager.selectedDate,
+                    format: Date.FormatStyle().month(.wide)
+                )
+                .font(.system(size: 12, weight: .heavy))
+                .foregroundColor(.primary)
+
+                Button("Today") {
+                    withAnimation(.linear(duration: 0.1)) {
+                        dateManager.selectToday()
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+            }
         }
-      }
     }
-  }
-  @ViewBuilder
-  private func nameHeaderTextView() -> some View {
-    HStack {
-      
-      VStack(alignment: .listRowSeparatorLeading, spacing: 0) {
-        Text("Hi, Javid")
-          .font(.title)
-          .fontWeight(.semibold)
-          .foregroundColor(.black)
-          .padding(4)
-        
-        Text(dateManager.selectedDate == Calendar.current.startOfDay(for: Date()) ? "What's up for today?" : "Planning for future?")
-          .font(.caption)
-          .fontWeight(.light)
-          .foregroundColor(.black)
-          .padding(4)
-      }
-      
-      Spacer()
-      
-      VStack(alignment: .trailing) {
-        Text(dateManager.selectedDate.monthToString())
-        font(.system(size: 10))
-          .fontWeight(.heavy)
-          .foregroundColor(.black)
-        
-        Button {
-          withAnimation(.linear(duration: 0.1)) {
-            dateManager.selectToday()
-          }
-        } label: {
-          Text("Today")
-            .font(.system(size: 16))
-            .fontWeight(.semibold)
-            .foregroundColor(.white)
-            .padding(4)
-            .background(.black)
-            .cornerRadius(4)
-        }
-      }
-    }
-  }
 }
 
-
 #Preview {
-  DateHeaderView()
+    DateHeaderView()
+        .environmentObject(DateManager())
 }

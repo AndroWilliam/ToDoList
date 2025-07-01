@@ -9,15 +9,15 @@ import SwiftUI
 
 @main
 struct ToDoListApp: App {
-  
-  @StateObject var dateManager: DateManager = DateManager()
-  @StateObject var tasklistManager: TasksListManager = TasksListManager()
-  
+    @StateObject private var dateManager       = DateManager()
+    @StateObject private var tasksListManager = TasksListManager()
+
     var body: some Scene {
         WindowGroup {
             ContentView()
-            .environmentObject(dateManager)
-            .environmentObject(tasklistManager)
+                .environmentObject(dateManager)
+                .environmentObject(tasksListManager)
         }
     }
 }
+

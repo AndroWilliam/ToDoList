@@ -8,43 +8,47 @@
 import Foundation
 
 class TasksListManager: ObservableObject {
-  @Published var items: [Task] = []
+  @Published var items: [Task] = [] {
+    didSet { saveTasks() }
+  }
+  
+  private let userDefaultsKey = "tasks"
   
   init() {
-    self.items = getTaskList()
+    loadTasks()
   }
   
-  private func refreshTaskList() {
-    guard let data = try? JSONEncoder().encode(items) else { return }
-    UserDefaults.standard.set(data, forKey: "notes")
-  }
-  
-  func getTaskList() -> [Task] {
-    guard let data = UserDefaults.standard.data(forKey: "notes") else { return [] }
-    
-    if let json = try? JSONDecoder().decode([Task].self, from: data) {
-      items = json
-      return items
-    }
-    
-    return []
-  }
-  
-  func updateTaskList(task: Task) {
+  func add(_ task: Task) {
     items.append(task)
-    refreshTaskList()
   }
   
-  func deleteTask(task: Task) {
-    let index = items.firstIndex(of: task) ?? 0
-    items.remove(at: index)
-    refreshTaskList()
+  func remove(_ task: Task) {
+    guard let idx = items.firstIndex(of: task) else { return }
+    items.remove(at: idx)
   }
   
-  func toggleTaskCompletion(task: Task) {
-    let index = items.firstIndex(of: task) ?? 0
-    items[index].isCompleted.toggle()
-    refreshTaskList()
+  func toggleCompletion(of task: Task) {
+    guard let idx = items.firstIndex(of: task) else { return }
+    items[idx].isCompleted.toggle()
   }
   
+  private func saveTasks() {
+    do {
+      let data = try JSONEncoder().encode(items)
+      UserDefaults.standard.set(data, forKey: userDefaultsKey)
+    } catch {
+      print("Failed to encode tasks:", error)
+    }
+  }
+  
+  private func loadTasks() {
+    guard
+      let data = UserDefaults.standard.data(forKey: userDefaultsKey),
+      let decoded = try? JSONDecoder().decode([Task].self, from: data)
+    else {
+      items = []
+      return
+    }
+    items = decoded
+  }
 }

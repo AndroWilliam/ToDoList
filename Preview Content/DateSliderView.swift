@@ -7,54 +7,55 @@
 
 import SwiftUI
 
-struct DateSliderView<DateViewContent: View>: View {
-  
-  @EnvironmentObject var weekManager: DateManager
-  @State private var activeTab: Int = 1
-  @State private var position = CGSize.zero
-  @GestureState private var dragOffset = CGSize.zero
-  @State private var direction: SliderTimeDirection = .unknown
-  
-  let dateViewContent: (_ week: WeekModel) -> DateViewContent
-  
-  init(@ViewBuilder dateViewContent: @escaping (_ week: WeekModel) -> DateViewContent) {
-    self.dateViewContent = dateViewContent
-  }
-  
-  var body: some View {
-    TabView(selection: $activeTab) {
-      dateViewContent(weekManager.weeks[0])
-        .frame(maxWidth: .infinity)
-        .tag(0)
-      
-      dateViewContent(weekManager.weeks[1])
-        .frame(maxWidth: .infinity)
-        .tag(1)
-        .onDisappear() {
-          guard direction != .unknown else { return }
-          weekManager.update(to: direction)
-          direction = .unknown
-          activeTab = 1
+struct DateSliderView<Content: View>: View {
+    @EnvironmentObject private var dateManager: DateManager
+    @State private var activeTab = 1
+    @State private var direction: SliderTimeDirection = .unknown
+
+    let content: (WeekModel) -> Content
+
+    init(@ViewBuilder _ content: @escaping (WeekModel) -> Content) {
+        self.content = content
+    }
+
+    var body: some View {
+        TabView(selection: $activeTab) {
+            // previous week
+            content(dateManager.weeks[0])
+                .frame(maxWidth: .infinity)
+                .tag(0)
+
+            // current week
+            content(dateManager.weeks[1])
+                .frame(maxWidth: .infinity)
+                .tag(1)
+                .onDisappear {
+                    guard direction != .unknown else { return }
+                    dateManager.update(to: direction)
+                    direction = .unknown
+                    activeTab = 1
+                }
+
+            // next week
+            content(dateManager.weeks[2])
+                .frame(maxWidth: .infinity)
+                .tag(2)
         }
-      
-      dateViewContent(weekManager.weeks[2])
-        .frame(maxWidth: .infinity)
-        .tag(2)
-    }
-    .tabViewStyle(.page(indexDisplayMode: .never))
-    .onChange(of: activeTab) {_, value in
-      if value == 0 {
-        direction = .past
-      } else if value == 2 {
-        direction = .future
-      }
-    }
-  }
-}
+        .tabViewStyle(.page(indexDisplayMode: .never))
+                .onChange(of: activeTab) {
+                    switch activeTab {
+                    case 0: direction = .past
+                    case 2: direction = .future
+                    default: direction = .unknown
+                    }
+                }
+            }
+        }
 
 
 #Preview {
-  DateSliderView() { week in
-    DateView(week: week)
-  }.environmentObject(DateManager())
+    DateSliderView { week in
+        DateView(week: week)
+    }
+    .environmentObject(DateManager())
 }

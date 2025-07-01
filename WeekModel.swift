@@ -7,8 +7,10 @@
 
 import Foundation
 
-struct WeekModel {
-  let index: Int
-  let dates: [Date]
-  var referenceDate: Date
+struct WeekModel: Identifiable, Hashable {
+    
+    let index: Int
+    let dates: [Date]
+    var referenceDate: Date
+    var id: Int { index }
 }

@@ -8,30 +8,53 @@
 import SwiftUI
 
 struct TaskListView: View {
-  
-  @Binding var date: Date
-  @Binding var items: [Task]
-  var currentDateTasks: [Task] = []
-  
-  init(date: Binding<Date>, items: Binding<[Task]>) {
-    self._date = date
-    self._items = items
-    currentDateTasks = getCurrentDateTasks()
-  }
-  
-  
-  var body: some View {
-    Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
-  }
-  
-  func getCurrentDateTasks() -> [Task] {
-    return items.filter{ $0.date.toString(format: "EEEE, dd.MM.yyyy") == date.toString(format: "EEE, dd.MM.yyyy") }.sorted { !$0.isCompleted && $1.isCompleted}
-  }
+    @Binding var date: Date
+    @Binding var items: [Task]
+
+    private var filteredIndices: [Int] {
+        items.indices
+            .filter { idx in
+                Calendar.current.isDate(
+                  items[idx].date,
+                  inSameDayAs: date
+                )
+            }
+            .sorted { lhs, rhs in
+                (!items[lhs].isCompleted && items[rhs].isCompleted)
+            }
+    }
+
+    var body: some View {
+        ScrollView {
+            LazyVStack(spacing: 0) {
+                if filteredIndices.isEmpty {
+                    Text("No tasks for this day")
+                        .foregroundStyle(.secondary)
+                        .padding(.top, 20)
+                } else {
+                    ForEach(filteredIndices, id: \.self) { idx in
+                        TaskListItem(task: $items[idx])
+                    }
+                }
+            }
+        }
+    }
 }
 
 #Preview {
-  ContentView()
-    .environmentObject(DateManager())
-    .environmentObject(TasksListManager())
-  
+    TaskListView(
+        date: .constant(Date()),
+        items: .constant([
+            Task(title: "Buy groceries"),
+            Task(title: "Morning run", isCompleted: true),
+            Task(
+              title: "Call Alice",
+              date: Calendar.current.date(byAdding: .day, value: 0, to: Date())!
+            ),
+            Task(
+              title: "Tomorrow’s task",
+              date: Calendar.current.date(byAdding: .day, value: 1, to: Date())!
+            )
+        ])
+    )
 }
